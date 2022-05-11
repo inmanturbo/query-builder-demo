@@ -1,9 +1,14 @@
 <?php
 
+use App\Models\SushiBase;
 use App\Models\User;
+use Doctrine\DBAL\Query\QueryException;
+use Illuminate\Database\Connectors\ConnectionFactory;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Spatie\QueryBuilder\QueryBuilder;
+use Illuminate\Database\Eloquent\Model;
 
 /*
 |--------------------------------------------------------------------------
@@ -17,23 +22,40 @@ use Spatie\QueryBuilder\QueryBuilder;
 */
 
 Route::get('/{table}', function ($table) {
-
-    if(!in_array($table, DB::connection()->getDoctrineSchemaManager()->listTableNames())) {
+    if (!in_array($table, DB::connection()->getDoctrineSchemaManager()->listTableNames())) {
         return abort(404);
     }
 
-    $model = eval("return new class() extends \Illuminate\Database\Eloquent\Model {
+    $GLOBALS['SUSHI_TABLE'] = $table;
+    $GLOBALS['SUSHI_ROWS'] = [
+            [
+                'id' => 1,
+                'name' => 'John',
+                'email' => 'someone@somewhere.com',
+                'created_at' => now()->toDateTimeString(),
+                'updated_at' => now()->toDateTimeString(),
+            ]
+    ];
+    $GLOBALS['SUSHI_DATABASE_NAME'] = $table;
 
-        protected \$table = '$table';
+    $model = (new class() extends SushiBase {
 
-        public function getTableColumns() {
-            return \$this->getConnection()->getSchemaBuilder()->getColumnListing(\$this->getTable());
+        protected function getSushiConnection()
+        {
+            return array_merge(config('database.connections.mysql'), ['prefix' => 'sushi_', 'name' => 'mysql']);
         }
-    
-    };");
 
+        public function getRows()
+        {
+            return $GLOBALS['SUSHI_ROWS'];
+        }
+    });
     
-    $response = QueryBuilder::for($model)->allowedFilters($model->getTableColumns())->paginate(15);
-    return $response;
+    $model = QueryBuilder::for($model)->allowedFilters($model->getTableColumns())->paginate();
+    return $model;
 });
  
+
+Route::get('/', function () {
+    dd(DB::table('estimates')->get()->values()->toArray());
+});
