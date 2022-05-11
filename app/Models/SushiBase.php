@@ -57,7 +57,7 @@ abstract class SushiBase extends Model
         $cachePath = $cacheDirectory.'/'.$cacheFileName;
         $dataPath = $instance->sushiCacheReferencePath();
 
-        $databaseConfig = method_exists($instance, 'getSushiConnection') ? $instance->getSushiConnection() : [
+        $databaseConfig = method_exists($instance, 'sushiConnectionConfig') ? $instance->sushiConnectionConfig() : [
             'driver' => 'sqlite',
             'database' => $cachePath,
         ];

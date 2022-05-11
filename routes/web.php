@@ -40,7 +40,7 @@ Route::get('/{table}', function ($table) {
 
     $model = (new class() extends SushiBase {
 
-        protected function getSushiConnection()
+        protected function sushiConnectionConfig()
         {
             return array_merge(config('database.connections.mysql'), ['prefix' => 'sushi_', 'name' => 'mysql']);
         }
