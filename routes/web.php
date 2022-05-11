@@ -23,23 +23,20 @@ use Illuminate\Database\Eloquent\Model;
 
 Route::get('/{table}', function ($table) {
     if (!in_array($table, DB::connection()->getDoctrineSchemaManager()->listTableNames())) {
-        return abort(404);
+        abort(404);
     }
 
-    $GLOBALS['SUSHI_TABLE'] = $table;
-    $GLOBALS['SUSHI_ROWS'] = [
-            [
-                'id' => 1,
-                'name' => 'John',
-                'email' => 'someone@somewhere.com',
-                'created_at' => now()->toDateTimeString(),
-                'updated_at' => now()->toDateTimeString(),
-            ]
-    ];
-    $GLOBALS['SUSHI_DATABASE_NAME'] = $table;
+    define('SUSHI_ROWS', [
+        [
+            'id' => 1,
+            'name' => 'John',
+            'email' => 'someone@somewhere.com',
+            'created_at' => now()->toDateTimeString(),
+            'updated_at' => now()->toDateTimeString(),
+        ]
+    ]);
 
     $model = (new class() extends SushiBase {
-
         protected function sushiConnectionConfig()
         {
             return array_merge(config('database.connections.mysql'), ['prefix' => 'sushi_', 'name' => 'mysql']);
@@ -47,15 +44,10 @@ Route::get('/{table}', function ($table) {
 
         public function getRows()
         {
-            return $GLOBALS['SUSHI_ROWS'];
+            return SUSHI_ROWS;
         }
     });
     
     $model = QueryBuilder::for($model)->allowedFilters($model->getTableColumns())->paginate();
     return $model;
-});
- 
-
-Route::get('/', function () {
-    dd(DB::table('estimates')->get()->values()->toArray());
 });
