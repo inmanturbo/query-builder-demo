@@ -14,6 +14,7 @@ trait ComponentUtilities
 
     public array $table = [];
     public $theme = null;
+    public $userSelectedColumns = [];
     protected Builder $builder;
     protected $model;
     protected $primaryKey;
@@ -57,6 +58,7 @@ trait ComponentUtilities
         if ($this->queryStringIsEnabled()) {
             return [
                 $this->getTableName() => ['except' => null],
+                'userSelectedColumns' => ['except' => null, 'as' => 'c'],
             ];
         }
 
